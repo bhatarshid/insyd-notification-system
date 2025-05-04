@@ -1,9 +1,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const notificationRoutes = require("./routes/notification-route");
 
 const app = express();
 
 app.use(bodyParser.json());
+
+app.use("/notifications", notificationRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
