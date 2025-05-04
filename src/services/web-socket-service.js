@@ -1,13 +1,9 @@
 const WebSocket = require("ws");
 
 class WebSocketService {
-  constructor(server) {
-    this.clients = new Map(); // userId -> WebSocket
+  static init(server) {
     this.wss = new WebSocket.Server({ server });
-    this.init();
-  }
-
-  init() {
+    this.clients = new Map(); // userId -> WebSocket
     this.wss.on("connection", (ws) => {
       ws.on("message", async (message) => {
         try {
@@ -17,27 +13,22 @@ class WebSocketService {
               this.handleClientAuth(ws, data.userId);
               break;
             case "logout":
-              await this.handleClientLogout(ws, data.userId);
+              this.handleClientLogout(ws, data.userId);
               break;
           }
         } catch (error) {
           console.error("Error processing message:", error);
         }
       });
+
       ws.on("close", () => {
         this.handleClientDisconnected(ws);
       });
     });
   }
 
-  async handleClientAuth(ws, userId) {
-    ws.userId = userId;
-
-    if (!this.clients.has(userId)) {
-      this.clients.set(userId, new Set());
-    }
-
-    this.clients.get(userId)?.add(ws);
+  static handleClientAuth(ws, userId) {
+    this.clients.set(userId, ws);
 
     ws.send(
       JSON.stringify({
@@ -47,7 +38,7 @@ class WebSocketService {
     );
   }
 
-  async handleClientLogout(ws, userId) {
+  static handleClientLogout(ws, userId) {
     try {
       const userConnections = this.clients.get(userId);
       if (userConnections) {
@@ -72,7 +63,7 @@ class WebSocketService {
     }
   }
 
-  handleClientDisconnected(ws) {
+  static handleClientDisconnected(ws) {
     if (ws.userId) {
       const userConnections = this.clients.get(ws.userId);
       if (userConnections) {
@@ -85,25 +76,23 @@ class WebSocketService {
     }
   }
 
-  isUserOnline(userId) {
+  static isUserOnline(userId) {
     return this.clients.has(userId);
   }
 
-  sendNotification(userId, notification) {
-    const userConnections = this.clients.get(userId);
-    if (userConnections) {
-      userConnections.forEach((ws) => {
-        ws.send(
-          JSON.stringify({
-            type: "NEW_NOTIFICATION",
-            data: notification,
-          })
-        );
-      });
-    }
+  static sendNotification(userIds, data) {
+    userIds.forEach((userId) => {
+      const userConnection = this.clients.get(userId);
+      if (userConnection) {
+        const messageString = JSON.stringify(data);
+        if (userConnection.readyState === WebSocket.OPEN) {
+          userConnection.send(messageString);
+        }
+      }
+    })
   }
 
-  sendUnreadCount(userId, count) {
+  static sendUnreadCount(userId, count) {
     const userConnections = this.clients.get(userId);
     if (userConnections) {
       userConnections.forEach((ws) => {

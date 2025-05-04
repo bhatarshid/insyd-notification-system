@@ -7,11 +7,9 @@ const PORT = process.env.PORT || 3000;
 
 const server = http.createServer(app);
 
-const wss = new WebSocketService(server);
+WebSocketService.init(server);
 
 // Start server
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-module.exports = wss;
