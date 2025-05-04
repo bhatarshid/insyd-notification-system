@@ -43,6 +43,34 @@ class Database {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
+
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS posts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER REFERENCES users(id),
+          content TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS likes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER REFERENCES users(id),
+          post_id INTEGER REFERENCES posts(id),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS comments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER REFERENCES users(id),
+          post_id INTEGER REFERENCES posts(id),
+          comment TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
     });
   }
 
