@@ -37,6 +37,14 @@ class Post {
     return posts;
   }
 
+  async fetchPost(postId) {
+    const result = await db.query(
+      `SELECT * from posts where id = ?`, [postId]
+    )
+
+    return result[0]
+  }
+
   async findPostById(id) {
     const posts = await db.query("SELECT * FROM posts WHERE id = ?", [id]);
     return posts[0];

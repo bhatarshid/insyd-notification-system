@@ -39,6 +39,7 @@ class PostController {
       }
       const userData = await user.findById(userId)
       const result = await post.commentOnPost({postId, userId, comment});
+      const postDetails = await post.fetchPost(postId);
       const userIds = result.map((item) => item.user_id);
       const followers = await follow.findFollowersOfUser(userId)
       const followerIds = followers.map((item) => item.id)
@@ -49,6 +50,10 @@ class PostController {
       WebSocketService.sendNotification(followerIds, {
         type: "comment",
         message: `${userData.name} added a comment on a post`,
+      });
+      WebSocketService.sendNotification([postDetails.user_id], {
+        type: "comment",
+        message: `${userData.name} commented on your post`,
       });
       res.send({ user: userIds });
     } catch (error) {
@@ -65,6 +70,7 @@ class PostController {
       }
       const userData = await user.findById(userId)
       const result = await post.likePost({postId, userId});
+      const postDetails = await post.fetchPost(postId);
       const userIds = result.map((item) => item.user_id);
       const followers = await follow.findFollowersOfUser(userId);
       const followerIds = followers.map((item) => item.id);
@@ -73,10 +79,14 @@ class PostController {
         message: "A user liked the same post where you left a like.",
       });
       WebSocketService.sendNotification(followerIds, {
-        type: "comment",
+        type: "like",
         message: `${userData.name} liked a post`,
       });
-      res.send({ user: postData });
+      WebSocketService.sendNotification([postDetails.user_id], {
+        type: "like",
+        message: `${userData.name} liked your post`
+      })
+      res.send({ postDetails });
     } catch (error) {
       console.error("Error user: ", error);
       res.status(500).json({ error: "Internal server error" });
