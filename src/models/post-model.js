@@ -15,6 +15,25 @@ class Post {
       FROM posts 
       JOIN users ON posts.user_id = users.id
     `);
+
+    for (const post of posts) {
+      const comments = await db.query(`
+        SELECT comments.comment, comments.user_id, users.name AS commenter_name 
+        FROM comments 
+        JOIN users ON comments.user_id = users.id 
+        WHERE comments.post_id = ?
+      `, [post.id]);
+      post.comments = comments;
+
+      const likes = await db.query(`
+        SELECT likes.user_id, users.name AS liker_name, users.email AS liker_email 
+        FROM likes 
+        JOIN users ON likes.user_id = users.id 
+        WHERE likes.post_id = ?
+      `, [post.id]);
+      post.likes = likes;
+      post.like_count = likes.length;
+    }
     return posts;
   }
 
@@ -28,7 +47,11 @@ class Post {
       "INSERT INTO likes (post_id, user_id) VALUES (?, ?)",
       [postId, userId]
     );
-    return result.lastID;
+    const likes = await db.query(
+      "SELECT user_id FROM likes WHERE post_id = ? and post_id != ?",
+      [postId, result.lastID]
+    );
+    return likes;
   }
 
   async commentOnPost({ postId, userId, comment }) {

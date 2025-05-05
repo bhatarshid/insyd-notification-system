@@ -7,5 +7,6 @@ const postController = new PostController();
 router.get("/", postController.fetchPosts);
 router.post("/create", postController.createPost);
 router.post("/comment", postController.commentOnPost);
+router.post("/like", postController.likePost);
 
 module.exports = router;
