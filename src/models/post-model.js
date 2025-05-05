@@ -48,8 +48,8 @@ class Post {
       [postId, userId]
     );
     const likes = await db.query(
-      "SELECT user_id FROM likes WHERE post_id = ? and post_id != ?",
-      [postId, result.lastID]
+      "SELECT user_id FROM likes WHERE post_id = ? and user_id != ?",
+      [postId, userId]
     );
     return likes;
   }
@@ -60,8 +60,8 @@ class Post {
       [postId, userId, comment]
     );
     const comments = await db.query(
-      "SELECT user_id FROM comments WHERE post_id = ? and post_id != ?",
-      [postId, result.lastID]
+      "SELECT user_id FROM comments WHERE post_id = ? and user_id != ?",
+      [postId, userId]
     );
     return comments;
   }

@@ -34,7 +34,7 @@ class PostController {
         return res.status(400).json({ error: "All fields are required" });
       }
       const result = await post.commentOnPost({postId, userId, comment});
-      const userIds = await result.map((item) => item.user_id);
+      const userIds = new Set(result.map((item) => item.user_id));
       WebSocketService.sendNotification(userIds, {
         type: "comment",
         message: "A user replied to the same post where you left a comment.",
@@ -53,7 +53,7 @@ class PostController {
         return res.status(400).json({ error: "All fields are required" });
       }
       const postData = await post.likePost({postId, userId});
-      const userIds = await postData.map((item) => item.user_id);
+      const userIds = new Set(postData.map((item) => item.user_id))
       WebSocketService.sendNotification(userIds, {
         type: "like",
         message: "A user liked the same post where you left a like.",
