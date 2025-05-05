@@ -10,7 +10,16 @@ class User {
   }
 
   async findByEmail(email) {
-    const users = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+    const users = await db.query("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+    return users[0];
+  }
+
+  async findById(id) {
+    const users = await db.query("SELECT * FROM users WHERE id = ?", [
+      id,
+    ]);
     return users[0];
   }
 

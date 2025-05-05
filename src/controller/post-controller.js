@@ -1,8 +1,10 @@
 const Follow = require("../models/follow-model");
 const Post = require("../models/post-model");
+const User = require("../models/user-model");
 const WebSocketService = require("../services/web-socket-service");
 const post = new Post();
 const follow = new Follow()
+const user = new User();
 
 class PostController {
   async fetchPosts(req, res) {
@@ -35,13 +37,18 @@ class PostController {
       if (!postId || !userId || !comment) {
         return res.status(400).json({ error: "All fields are required" });
       }
+      const userData = await user.findById(userId)
       const result = await post.commentOnPost({postId, userId, comment});
-      const userIds = new Set(result.map((item) => item.user_id));
+      const userIds = result.map((item) => item.user_id);
       const followers = await follow.findFollowersOfUser(userId)
-      const followerIds = new Set(followers.map((item) => item.user_id))
-      WebSocketService.sendNotification(userIds.concat(followerIds), {
+      const followerIds = followers.map((item) => item.id)
+      WebSocketService.sendNotification(userIds, {
         type: "comment",
         message: "A user replied to the same post where you left a comment.",
+      });
+      WebSocketService.sendNotification(followerIds, {
+        type: "comment",
+        message: `${userData.name} added a comment on a post`,
       });
       res.send({ user: userIds });
     } catch (error) {
@@ -56,13 +63,18 @@ class PostController {
       if (!postId || !userId) {
         return res.status(400).json({ error: "All fields are required" });
       }
-      const postData = await post.likePost({postId, userId});
-      const userIds = new Set(postData.map((item) => item.user_id))
+      const userData = await user.findById(userId)
+      const result = await post.likePost({postId, userId});
+      const userIds = result.map((item) => item.user_id);
       const followers = await follow.findFollowersOfUser(userId);
-      const followerIds = new Set(followers.map((item) => item.user_id));
-      WebSocketService.sendNotification(userIds.concat(followerIds), {
+      const followerIds = followers.map((item) => item.id);
+      WebSocketService.sendNotification(userIds, {
         type: "like",
         message: "A user liked the same post where you left a like.",
+      });
+      WebSocketService.sendNotification(followerIds, {
+        type: "comment",
+        message: `${userData.name} liked a post`,
       });
       res.send({ user: postData });
     } catch (error) {

@@ -16,6 +16,7 @@ class Follow {
       WHERE f.followee_id = ?
     `;
     const result = await db.query(query, [userId]);
+    console.log(result)
     return result;
   }
 }
