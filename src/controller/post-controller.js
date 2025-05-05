@@ -1,6 +1,8 @@
+const Follow = require("../models/follow-model");
 const Post = require("../models/post-model");
 const WebSocketService = require("../services/web-socket-service");
 const post = new Post();
+const follow = new Follow()
 
 class PostController {
   async fetchPosts(req, res) {
@@ -35,7 +37,9 @@ class PostController {
       }
       const result = await post.commentOnPost({postId, userId, comment});
       const userIds = new Set(result.map((item) => item.user_id));
-      WebSocketService.sendNotification(userIds, {
+      const followers = await follow.findFollowersOfUser(userId)
+      const followerIds = new Set(followers.map((item) => item.user_id))
+      WebSocketService.sendNotification(userIds.concat(followerIds), {
         type: "comment",
         message: "A user replied to the same post where you left a comment.",
       });
@@ -54,7 +58,9 @@ class PostController {
       }
       const postData = await post.likePost({postId, userId});
       const userIds = new Set(postData.map((item) => item.user_id))
-      WebSocketService.sendNotification(userIds, {
+      const followers = await follow.findFollowersOfUser(userId);
+      const followerIds = new Set(followers.map((item) => item.user_id));
+      WebSocketService.sendNotification(userIds.concat(followerIds), {
         type: "like",
         message: "A user liked the same post where you left a like.",
       });

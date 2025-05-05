@@ -1,10 +1,10 @@
 const db = require("../db/database");
 
 class Follow {
-  async create({ followerId, followingId }) {
+  async create({ followerId, followeeId }) {
     const result = await db.run(
-      "INSERT INTO follows (follower_id, following_id, created_at) VALUES (?, ?)",
-      [followerId, followingId, new Date().toISOString()]
+      "INSERT INTO follows (follower_id, followee_id, created_at) VALUES (?, ?, ?)",
+      [followerId, followeeId, new Date().toISOString()]
     );
     return result.lastID;
   }
